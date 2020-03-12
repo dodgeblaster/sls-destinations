@@ -6,7 +6,6 @@ provider:
   iamRoleStatements:
     - Effect: Allow
       Action:
-          - SNS:CreateTopic
           - SNS:Publish
       Resource: 'arn:aws:sns:#{AWS::Region}:*:*'
 
@@ -16,6 +15,8 @@ plugins:
 functions:
   start: # SYNC
     handler: ./src/start.handler
+    environment:
+      EVENT: arn:aws:sns:#{AWS::Region}:#{AWS::AccountId}:ed-received-${opt:stage, self:provider.stage}
     events:
      - http:
          path: /

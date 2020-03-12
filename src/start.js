@@ -1,18 +1,13 @@
 const AWS = require('aws-sdk')
+const SNS = new AWS.SNS({
+    region: process.env.AWS_REGION
+})
 
 const emit = async (event, data) => {
-    const SNS = new AWS.SNS({
-        region: process.env.AWS_REGION
-    })
-
-    const arn = await SNS.createTopic({
-        Name: event
-    }).promise()
-
     return SNS.publish({
         Subject: event,
         Message: JSON.stringify(data),
-        TopicArn: arn.TopicArn
+        TopicArn: process.env.EVENT
     }).promise()
 }
 
