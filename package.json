@@ -1,0 +1,9 @@
+{
+  "name": "eventDestinations",
+  "version": "1.0.0",
+  "main": "index.js",
+  "license": "MIT",
+  "devDependencies": {
+    "serverless-pseudo-parameters": "^2.5.0"
+  }
+}

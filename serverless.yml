@@ -1,0 +1,53 @@
+service: eventdestinations
+
+provider:
+  name: aws
+  runtime: nodejs12.x
+  iamRoleStatements:
+    - Effect: Allow
+      Action:
+          - SNS:CreateTopic
+          - SNS:Publish
+      Resource: 'arn:aws:sns:#{AWS::Region}:*:*'
+
+plugins:
+    - serverless-pseudo-parameters
+
+functions:
+  start: # SYNC
+    handler: ./src/start.handler
+    events:
+     - http:
+         path: /
+         method: post
+  
+  build: # ASYNC
+    handler: ./src/build.handler
+    events:
+     - sns: arn:aws:sns:#{AWS::Region}:#{AWS::AccountId}:ed-received-${opt:stage, self:provider.stage}
+    destinations:
+      onSuccess: arn:aws:sns:#{AWS::Region}:#{AWS::AccountId}:ed-built-${opt:stage, self:provider.stage}
+      onFailure: failure
+
+  record: # ASYNC
+    handler: ./src/record.handler
+    events:
+     - sns: arn:aws:sns:#{AWS::Region}:#{AWS::AccountId}:ed-built-${opt:stage, self:provider.stage}
+    destinations:
+      onFailure: failure
+
+  failure: # ASYNC
+    handler: ./src/failure.handler
+
+resources:
+ Resources:
+  receivedEvent:
+      Type: AWS::SNS::Topic
+      Properties:
+          TopicName: ed-received-${opt:stage, self:provider.stage}
+  builtEvent:
+      Type: AWS::SNS::Topic
+      Properties:
+          TopicName: ed-built-${opt:stage, self:provider.stage}
+
+
